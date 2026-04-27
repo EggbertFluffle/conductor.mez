@@ -112,6 +112,10 @@ M.do_layout = function (snippet, views, params)
 
 	M.set_layout_snippet(snippet, params)
 
+	for i, v in ipairs(views) do
+		views[i] = tostring(v)
+	end
+
 	local state = {
 		window_ids = views,
 		screen_size = mez.output.get_available_area(0) or {x = 0, y = 0, width = 1920, height = 1080},
@@ -122,7 +126,6 @@ M.do_layout = function (snippet, views, params)
 		max_depth = M.config.max_depth
 	}
 
-	if not state.screen_size then print("THIS SHIT IS NIL") end
 	local raw_json = json.encode(state)
 	print("JSON Message:")
 	print(raw_json)
@@ -139,7 +142,7 @@ M.do_layout = function (snippet, views, params)
 	if not succ then error(raw_json) end
 
 	for _, placement in ipairs(window_layouts.placements) do
-		mez.view.set_geometry(placement.id, placement.transform)
+		mez.view.set_geometry(tonumber(placement.id), placement.transform)
 	end
 end
 
