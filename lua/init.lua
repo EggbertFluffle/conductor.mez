@@ -13,25 +13,26 @@ local utils = {}
 ---@param view_id integer
 ---@return "floating" | "stacking" | nil view_type
 ---@return number | nil tag_index
----@return number | nil view_index
+---@return string | nil view_index
 utils.find_view = function(view_id)
 	if view_id == 0 then view_id = mez.view.get_focused_id(0) end
 	if not view_id then return end
 
 	for i, t in ipairs(M.state.tags) do
 		for j, v in ipairs(t.stack) do
-			if view_id == v then
+			if tostring(view_id) == v then
 				return "stacking", i, j
 			end
 		end
 
 		for j, v in ipairs(t.floating) do
-			if view_id == v then
+			if tostring(view_id) == v then
 				return "floating", i, j
 			end
 		end
 	end
 
+	print("couldnt find " .. view_id)
 	return nil, nil, nil
 end
 
@@ -85,9 +86,11 @@ end
 M.add_view = function(view_id)
 	local tag = M.state.tags[M.state.tag_id]
 
-	table.insert(tag.stack, #tag.stack + 1, view_id)
+	tag.stack[#tag.stack + 1] = view_id
 
-	if M.config.focus_on_spawn then mez.view.set_focused(0, view_id) end
+	if M.config.focus_on_spawn then
+		mez.view.set_focused(0, view_id)
+	end
 
 	M.tile_tag(M.state.tag_id)
 end
@@ -137,7 +140,7 @@ M.do_layout = function (snippet, views, params)
 	print("JSON Return:")
 	print(raw_json)
 
-	---@type { ignored: integer[], placements: { id: integer, transform: { x: integer, y: integer, width: integer, height: integer } }[] }
+	---@type { ignored: integer[], placements: { id: string, transform: { x: integer, y: integer, width: integer, height: integer } }[] }
 	local succ, window_layouts = pcall(json.decode, raw_json)
 	if not succ then error(raw_json) end
 
@@ -224,6 +227,8 @@ M.remove_view = function(view_id)
 	local type, tag_idx, view_idx = utils.find_view(view_id)
 
 	local tag = M.state.tags[tag_idx]
+
+	print(tag_idx)
 
 	if M.config.refocus_on_kill then
 		M.focus_prev()
